@@ -1,0 +1,14 @@
+{
+  "ExpandedNodes": [
+    "",
+    "\\项目",
+    "\\项目\\MySTL",
+    "\\项目\\MySTL\\Algorithm",
+    "\\项目\\MySTL\\Allocator",
+    "\\项目\\MySTL\\Contant",
+    "\\项目\\MySTL\\Iterator",
+    "\\项目\\MySTL\\TypeTraits"
+  ],
+  "SelectedNode": "\\项目\\MySTL\\Iterator\\stl_iterator.h",
+  "PreviewInSolutionExplorer": false
+}

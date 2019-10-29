@@ -1,5 +1,5 @@
 #include <new>
-//the first level allocator
+#include "../TypeTraits/type_traits.h"
 
 
 //the basic construct funciton
@@ -36,7 +36,7 @@ inline void __destory(ForwardIterator first, ForwardIterator last, T*)
 }
 
 template <class ForwardIterator>
-inline void __destory_aux(ForwardIterator first, ForwardIterator last, std::false_type)
+inline void __destory_aux(ForwardIterator first, ForwardIterator last, __false_type)
 {
     for( ; first < last; ++first)
     {
@@ -45,12 +45,12 @@ inline void __destory_aux(ForwardIterator first, ForwardIterator last, std::fals
 }
 
 template <class ForwardIterator>
-inline void __destory_aux(ForwardIterator first, ForwardIterator last, std::true_type)
+inline void __destory_aux(ForwardIterator first, ForwardIterator last, __true_type)
 {
    
 }
 
 //if the type is char or w_char
 //the funcitona don`t have to anything
-inline void destory(char*, char*) {}
-inline void destory(wchar_t*, wchar_t*) {}
+inline void destory(char*, char*) { }
+inline void destory(wchar_t*, wchar_t*) { }

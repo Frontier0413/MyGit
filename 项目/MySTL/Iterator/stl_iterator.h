@@ -10,7 +10,7 @@ struct random_access_iterator_tag {};
 template <class Category, class T, class Distance = ptrdiff_t, class Pointer = T*, class Reference = T&>
 struct iterator
 {
-    typedef Categlory iterator_category;
+    typedef Category iterator_category;
     typedef T value_type;
     typedef Distance difference_type;
     typedef Pointer pointer;
@@ -118,10 +118,10 @@ inline void __advance(BidirectionalIterator& i, Distance n, bidirectional_iterat
     {
         while(n--)  ++i;
     }
-    else
-    {
-        while(n++)  --i;
-    }
+	else
+	{
+		while (n++)  --i;
+	}
 }
 
 template<class RandomAccessIterator, class Distance>
