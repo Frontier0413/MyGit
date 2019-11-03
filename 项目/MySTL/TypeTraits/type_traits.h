@@ -1,9 +1,7 @@
-//type_traits
-
 struct __true_type {};
 struct __false_type {};
 
-//»ù±¾Ä£°åÀà£¬Ä¬ÈÏËùÓĞĞÍ±ğÎªfalse_type£¨×î°²È«µÄ×ö·¨£¬¼´Èç¹ûÎŞ·¨È·¶¨¸ÃĞÍ±ğµÄÀàĞÍ£¬ÎÒÃÇ¶¼Ä¬ÈÏÎªfalse_type£©
+//åŸºæœ¬æ¨¡æ¿ç±»ï¼Œé»˜è®¤æ‰€æœ‰å‹åˆ«ä¸ºfalse_type=,å³å½“æˆ‘ä»¬æ— æ³•ç¡®å®šå‹åˆ«æ—¶ï¼Œé»˜è®¤æ‰€æœ‰æ“ä½œéƒ½ä¸æ˜¯æ— å…³ç´§è¦çš„ã€‚
 template <class type>
 struct __type_traits
 {
@@ -15,7 +13,8 @@ struct __type_traits
 	typedef __false_type has_trivial_destructor;
 	typedef __false_type is_POD_type;
 };
-//ÌØ»¯°æ±¾
+
+//ç‰¹åŒ–ç‰ˆæœ¬
 template<>
 struct __type_traits<char>
 {

@@ -1,8 +1,9 @@
-#include "stl_construct.h"
-#include "../Algorithm/stl_algobase.h"
 #include <string.h>
+#include "../Allocator/stl_construct.h"
+#include "../Algorithm/stl_algobase.h"
+
 //fill_n函数
-//在[first,first + n)范围内，产生x的拷贝。
+//在first迭代器开始的区间内，初始化n个元素为元素x的拷贝
 template <class ForwardIterator, class Size, class T>
 inline ForwardIterator __uninitialized_fill_n_aux(ForwardIterator first, Size n, const T& x, __false_type)
 {
@@ -27,16 +28,18 @@ inline ForwardIterator __uninitialized_fill_n(ForwardIterator first, Size n, con
     return __uninitialized_fill_n_aux(first, n, x, is_POD());
 }
 
+//fill_n函数通过value_type获得迭代器的值类型，在通过type_traits判断元素类型是否为pod类型
+//对于pod类型，直接调用高阶函数fill_n。对于非pod类型，遍历区间依次调用construct函数
 template <class ForwardIterator, class Size, class T>
 inline ForwardIterator uninitialized_fill_n(ForwardIterator first, Size n, const T &x)
 {
-    return __uninitialized_fill_n(first, n, x, value_type(x));
+    return __uninitialized_fill_n(first, n, x, value_type(first));
 }
 
 //copy函数
 //copy函数将[first，last）前闭后开区间范围内的每一个对象，拷贝到result开始的未初始化的区域
 //对于pod类型，调用高阶函数copy
-//对于no pod类型，直接调用stl_construct中的construct函数。
+//对于no pod类型，遍历区间依次调用stl_construct中的construct函数。
 inline char* uninitialized_copy(const char* first, const char* last, char* result)
 {
     memmove(result, first, last - first);
@@ -70,7 +73,7 @@ template <class InputIterator, class ForwardIterator, class T>
 inline ForwardIterator __uninitialized_copy(InputIterator first, InputIterator last, ForwardIterator result, T*)
 {
     typedef typename __type_traits<T>::is_POD_type is_POD;
-    return __uninitialized_copy_aux(first, last, result, is_pod());
+    return __uninitialized_copy_aux(first, last, result, is_POD());
 
 }
 
@@ -82,6 +85,8 @@ ForwardIterator uninitialized_copy(InputIterator first, InputIterator last, Forw
 
 //fill函数
 //在[first, last)范围内产生x的拷贝
+//对于pod类型，调用高阶函数fill
+//对于非pod类型，遍历区间依次调用construct函数
 template <class ForwardIterator, class T>
 inline void __uninitialized_fill_aux(ForwardIterator first, ForwardIterator last, const T& x, __true_type)
 {

@@ -50,7 +50,7 @@ struct iterator_traits<const T*>
     typedef const T&                   reference;
 };
 
-//这个函数可以得到某个迭代器的category
+//获取迭代器的迭代器类型
 template <class Iterator> 
 inline typename iterator_traits<Iterator>::iterator_category iterator_category(const Iterator& )
 {
@@ -60,26 +60,28 @@ inline typename iterator_traits<Iterator>::iterator_category iterator_category(c
 }
 
 //获取迭代器的distance_type
-//为什么返回指针类型?
 template <class Iterator>
 inline typename iterator_traits<Iterator>::difference_type* distance_type(const Iterator& )
 {
-    return static<typename iterator_traits<Iterator>::difference_type*>(0);
+    return static_cast<typename iterator_traits<Iterator>::difference_type*>(0);
 }
+//返回指针类型是为了在判断类型时，可以使用指针，这样避免了拷贝，因为这个值往往是不会用到的，所以
+//只要能赋值成功就能代表类型，同时也可以避免隐式的类型转换带来的歧义。
 
 //获取迭代器的value_type
 template <class Iterator>
 inline typename iterator_traits<Iterator>::value_type* value_type(const Iterator& )
 {
-    return static<typename iterator_traits<Iterator>::value_type*>(0);
+    return static_cast<typename iterator_traits<Iterator>::value_type*>(0);
 }
 
-//distance函数，返回两个迭代器的距离
+
+
 template <class InputIterator>
 inline typename iterator_traits<InputIterator>::difference_type 
 __distance(InputIterator first, InputIterator last, input_iterator_tag)
 {
-    iterator_traits<InputIterator>::difference_type n = 0;
+    typename iterator_traits<InputIterator>::difference_type n = 0;
     while(first != last)
     {
         first++;
@@ -95,6 +97,7 @@ __distance(RandomAccessIterator first, RandomAccessIterator last, random_access_
     return last - first;
 }
 
+//获取迭代器first与last之间的距离
 template <class InputIterator>
 inline typename iterator_traits<InputIterator>::difference_type
 distance(InputIterator first, InputIterator last)
@@ -102,8 +105,9 @@ distance(InputIterator first, InputIterator last)
     typedef typename iterator_traits<InputIterator>::iterator_category category;
     __distance(first, last, category());
 }
+//对于随机访问迭代器，获取距离的最快方式就是直接相减，而对于不能随机访问的迭代器，只能通过循环来获得距离
 
-//advance函数,将给定迭代器i移动给定距离n
+
 template <class InputIterator, class Distance>
 inline void __advance(InputIterator& i, Distance n, input_iterator_tag)
 {
@@ -130,9 +134,11 @@ inline void __advance(RandomAccessIterator& i, Distance n, random_access_iterato
     i += n;
 }
 
+//将迭代器i向前移动n个距离
 template <class InputIterator, class Distance>
 inline void advance(InputIterator& i, Distance n)
 {
     typedef typename iterator_traits<InputIterator>::iterator_category category;
     __advance(i, n, category());
 }
+//同样的，对于随机访问迭代器，前进n距离只需要+n即可，对于其他类型，则需要通过循环。

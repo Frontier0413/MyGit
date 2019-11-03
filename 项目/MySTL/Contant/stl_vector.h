@@ -1,14 +1,12 @@
+#include <cstddef>
 #include "../Allocator/stl_alloc.h"
 #include "../Allocator/stl_uninitialized.h"
-#include "../Iterator/stl_iterator.h"
-#include "../Algorithm/stl_algobase.h"
-#include <cstddef>
 
 template <class T, class Alloc = alloc>
 class vector
 {
 public:
-
+	//定义vector类型别名
 	typedef T			value_type;
 	typedef value_type* pointer;
 	typedef value_type* iterator;
@@ -17,22 +15,24 @@ public:
 	typedef ptrdiff_t	defference_type;
 
 protected:
-
+	//默认使用第二级配置器
 	typedef simple_alloc<value_type, Alloc> data_allocator;
+	//start为内存开始位置，finish为尾元素后位置，end_of_storage为内存结束位置
+	iterator start;
+	iterator finish;
+	iterator end_of_storage;
 
-	iterator start;//Ŀǰ����ʹ�õĿռ��ʼλ��
-	iterator finish;//Ŀǰ���ڰ�ʹ�õĿռ����λ��
-	iterator end_of_storage;//Ŀǰ���ÿռ�Ľ���λ��
-
+	//分配n个T类型所需的内存，并使用x为初值初始化
 	iterator allocate_and_fill(size_type n, const T& x)
 	{
 		iterator result = data_allocator::allocate(n);
 		uninitialized_fill_n(result, n, x);
-		return result
+		return result;
 	}
 
 	void insert_aux(iterator position, const T& x);
 
+	//释放start到end_of_storage区间内的内存
 	void deallocate()
 	{
 		if (start)
@@ -40,7 +40,8 @@ protected:
 			data_allocator::deallocate(start, end_of_storage - start);
 		}
 	}
-
+	
+	//分配n个T类型所需的内存并使用value初始化
 	void fill_initialize(size_type n, const T& value)
 	{
 		start = allocate_and_fill(n, value);
@@ -49,69 +50,82 @@ protected:
 	}
 
 public:
-
-	iterator begin() { return start; }
-
-	iterator end() { return finish; }
-
+	//返回首元素迭代器
+	iterator begin() const { return start; }
+	//返回尾后迭代器
+	iterator end() const { return finish; }
+	//返回vector元素的长度，即start到finish
 	size_type size() const
 	{
 		return size_type(end() - begin());
 	}
-
+	//返回vector内存长度，即finish到end_of_storage
 	size_type capacity() const
 	{
 		return size_type(end_of_storage - begin());
 	}
-
+	//判断vector元素是否为空，为空返回true
 	bool empty() const
 	{
 		return begin() == end();
 	}
 
+	//返回第n个元素的引用
 	reference operator[](size_type n)
 	{
 		return *(begin() + n);
 	}
 
+	//返回首元素的引用
 	reference front()
 	{
 		return *begin();
 	}
 
+	//返回尾元素的引用
 	reference back()
 	{
 		return *(end() - 1);
 	}
+	//end()是尾后位置，而back()是尾元素
 
+	//添加value元素到vector的最后位置
+	//如果内存不足，调用insert_aux()
 	void push_back(const T& value)
 	{
+		//判断内存是否足够添加元素
 		if (finish != end_of_storage)
 		{
-			construct(finish, x);
-			++finish
+			construct(finish, value);
+			++finish;
 		}
 		else
 		{
-			insert_aux(end(), x);
+			insert_aux(end(), value);
 		}
 	}
 
+	//删除最后一个元素
 	void pop_back()
 	{
 		--finish;
 		destory(finish);
 	}
 
+	//删除迭代器position指代的元素,返回删除前position的下一个元素位置
 	iterator erase(iterator position)
 	{
+		//如果position不是最后一个元素，则需要调整位置，将position后面的元素向前挪动一个单位，同时删除最后一个元素
+		//如果是最后一个元素，则直接删除即可
 		if (position + 1 != end())
 		{
 			copy(position + 1, finish, position);
 		}
+		//删除元素之后，vector长度减一，删除最后一个元素。
 		--finish;
+		//vector的迭代器是原生指针，直接调用destory函数释放内存
 		destory(finish);
-		return position();
+		return position;
 	}
 
 	iterator erase(iterator first, iterator last)
@@ -181,7 +195,7 @@ void vector<T, Alloc>::insert_aux(iterator position, const T& x)
 		++finish;
 		T x_copy = x;
 		copy_backward(position, finish - 2, finish - 1);
-		*poistion = x_copy;
+		*position = x_copy;
 	}
 	else
 	{
@@ -192,10 +206,10 @@ void vector<T, Alloc>::insert_aux(iterator position, const T& x)
 
 		try
 		{
-			new_finish = uninitialized_copy(start, poistion, new_start);
+			new_finish = uninitialized_copy(start, position, new_start);
 			construct(new_finish, x);
 			++new_finish;
-			new_finish = uninitialized_copy(poistion, finisih, new_finish);
+			new_finish = uninitialized_copy(position, finish, new_finish);
 		}
 		catch (...) {
 			destory(new_start, new_finish);
@@ -221,21 +235,21 @@ void vector<T, Alloc>::insert(iterator position, size_type n, const T& x)
 		{
 			T x_copy = x;
 			const size_type elems_after = finish - position;
-			iterator odl_finish = finish;
+			iterator old_finish = finish;
 			if (elems_after > n)
 			{
 				uninitialized_copy(finish - n, finish, finish);
-				finsih += n;
+				finish += n;
 				copy_backward(position, old_finish - n, old_finish);
 				fill(position, position + n, x_copy);
 			}
 			else
 			{
 				uninitialized_fill_n(finish, n - elems_after, x_copy);
-				finsih += n - elems_after;
+				finish += n - elems_after;
 				uninitialized_copy(position, old_finish, finish);
-				finsih += elems_after;
-				fill(position, old_finisih, x_copy);
+				finish += elems_after;
+				fill(position, old_finish, x_copy);
 			}
 		}
 		else
@@ -253,7 +267,7 @@ void vector<T, Alloc>::insert(iterator position, size_type n, const T& x)
 			catch (...)
 			{
 				destory(new_start, new_finish);
-				data_allocator::allocate(new_start, len);
+				data_allocator::deallocate(new_start, len);
 				throw;
 			}
 			destory(start, finish);
