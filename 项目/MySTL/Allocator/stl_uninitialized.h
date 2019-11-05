@@ -1,3 +1,4 @@
+#pragma once
 #include <string.h>
 #include "../Allocator/stl_construct.h"
 #include "../Algorithm/stl_algobase.h"

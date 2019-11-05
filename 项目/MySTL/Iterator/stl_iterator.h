@@ -1,3 +1,4 @@
+#pragma once
 #include <cstddef>
 //迭代器类型标签
 struct input_iterator_tag {};

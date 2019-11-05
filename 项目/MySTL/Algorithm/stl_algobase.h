@@ -1,3 +1,4 @@
+#pragma once
 #include <string.h>
 #include "../Iterator/stl_iterator.h"
 #include "../TypeTraits/type_traits.h"
