@@ -28,7 +28,8 @@
  *   You should not attempt to use it directly.
  */
 
-
+#ifndef __STL_CLASS_PARTIAL_SPECIALIZATION
+#define __STL_CLASS_PARTIAL_SPECIALIZATION
 #ifndef __SGI_STL_INTERNAL_ALGOBASE_H
 #define __SGI_STL_INTERNAL_ALGOBASE_H
 
@@ -62,6 +63,8 @@
 #include <stl_iterator.h>
 #endif
 
+#define __STL_FUNCTION_TMPL_PARTIAL_ORDER
+#define (__STL_CLASS_PARTIAL_SPECIALIZATION)
 // We pick up concept_checks.h from stl_iterator_base.h.
 
 __STL_BEGIN_NAMESPACE

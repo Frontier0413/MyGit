@@ -27,7 +27,7 @@
 /* NOTE: This is an internal header file, included by other STL headers.
  *   You should not attempt to use it directly.
  */
-
+#include <cstddef>
 #include <concept_checks.h>
 
 #ifndef __SGI_STL_INTERNAL_DEQUE_H
@@ -66,8 +66,7 @@
  * turns out to violate the C++ standard (it can be detected using
  * template template parameters), and it has been removed.
  */
-
-__STL_BEGIN_NAMESPACE 
+ 
 
 #if defined(__sgi) && !defined(__GNUC__) && (_MIPS_SIM != _MIPS_SIM_ABI32)
 #pragma set woff 1174
@@ -201,7 +200,7 @@ operator+(ptrdiff_t __n, const _Deque_iterator<_Tp, _Ref, _Ptr>& __x)
 {
   return __x + __n;
 }
-
+#define __STL_CLASS_PARTIAL_SPECIALIZATION
 #ifndef __STL_CLASS_PARTIAL_SPECIALIZATION
 
 template <class _Tp, class _Ref, class _Ptr>
@@ -535,7 +534,7 @@ public:                         // Constructor, destructor.
     { _M_fill_initialize(__value); }
   explicit deque(size_type __n) : _Base(allocator_type(), __n)
     { _M_fill_initialize(value_type()); }
-
+#define __STL_MEMBER_TEMPLATES
 #ifdef __STL_MEMBER_TEMPLATES
 
   // Check whether it's an integral type.  If so, it's not an iterator.

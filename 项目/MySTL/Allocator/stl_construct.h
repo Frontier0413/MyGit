@@ -4,11 +4,17 @@
 #include "../TypeTraits/type_traits.h"
 
 
-//构造函数，在p指针指向的内存构造value的副本
+//构造函数，以value为初值初始化p所指内存
 template <class T1, class T2>
 inline void construct(T1* p, const T2& value)
 {
     new(p) T1(value);
+}
+
+template <class T1>
+inline void construct(T1* p)
+{
+    new(p) T1();
 }
 
 //对于析构函数不是无关紧要的型别来说，必须显示调用析构函数来释放内存
@@ -37,13 +43,6 @@ inline void __destory(ForwardIterator first, ForwardIterator last, T*)
 }
 
 
-//对于原生指针，destory直接通过指针调用析构函数
-template <class T>
-inline void destory(T* pointer)
-{
-    pointer->~T();
-}
-
 //destory函数，释放区间[first,last)内的元素
 template <class ForwardIterator>
 inline void destory(ForwardIterator first, ForwardIterator last)
@@ -55,6 +54,9 @@ inline void destory(ForwardIterator first, ForwardIterator last)
 //如果不是，则调用对应的析构函数
 //如果析构函数是无关紧要的，则什么也不做
 
-//char和wchar_t的特化版本
-inline void destory(char*, char*) { }
-inline void destory(wchar_t*, wchar_t*) { }
+//对于原生指针，destory直接通过指针调用析构函数
+template <class T>
+inline void destory(T* pointer)
+{
+    pointer->~T();
+}

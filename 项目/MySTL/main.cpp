@@ -1,19 +1,34 @@
 #include <iostream>
-#include <time.h>
+#include <vector>
+#include <memory>
+#include <string.h>
+#include "myhead.h"
 #include "Contant/stl_vector.h"
+#include "Contant/stl_list.h"
+#pragma pack(2)
+struct test1
+{
+    char a;
+    double b;
+    int c;
+    int d;
+    int e;
+};
+
+struct test2
+{
+    char s;
+    int i;
+    test1 t;
+};
+
+int&& test()
+{
+    int a = 1;
+    return std::move(a);
+}
 
 int main()
 {
-	clock_t start_time = clock();
-	vector<int> myvec;
-	myvec.insert(myvec.end(), 1, 777);
-	myvec.insert(myvec.end(), 1, 777);
-	myvec.insert(myvec.end(), 1, 777);
-	myvec.insert(myvec.end(), 1, 777);
-	myvec.insert(myvec.end(), 1, 777);
-	myvec.insert(myvec.begin(), 2, 4396);
-	for(int i = 0; i < myvec.size(); ++i)
-		std::cout << myvec[i] << std::endl;
-	clock_t end_time = clock();
-	std::cout << double(end_time - start_time)/CLOCKS_PER_SEC*1000 << "ms" << std::endl;
+   std::cout << test() << std::endl;
 }

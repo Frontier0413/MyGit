@@ -3,9 +3,9 @@
 //迭代器类型标签
 struct input_iterator_tag {};
 struct output_iterator_tag {};
-struct forward_iterator_tag {};
-struct bidirectional_iterator_tag {};
-struct random_access_iterator_tag {};
+struct forward_iterator_tag : public input_iterator_tag, public output_iterator_tag {};
+struct bidirectional_iterator_tag : public forward_iterator_tag {};
+struct random_access_iterator_tag : public bidirectional_iterator_tag{};
 
 //迭代器基础类，自行设计迭代器时，最好继承下面这个类
 template <class Category, class T, class Distance = ptrdiff_t, class Pointer = T*, class Reference = T&>
@@ -143,3 +143,141 @@ inline void advance(InputIterator& i, Distance n)
     __advance(i, n, category());
 }
 //同样的，对于随机访问迭代器，前进n距离只需要+n即可，对于其他类型，则需要通过循环。
+
+
+template <class Iterator>
+class reverse_iterator
+{
+protected:
+    Iterator current;
+
+public:
+    using iterator_category = typename iterator_traits<Iterator>::iterator_category;
+    using value_type        = typename iterator_traits<Iterator>::value_type;
+    using difference_type   = typename iterator_traits<Iterator>::difference_type;
+    using pointer           = typename iterator_traits<Iterator>::pointer;
+    using reference         = typename iterator_traits<Iterator>::reference;
+
+    using iterator_type     = Iterator;
+    using Self              = reverse_iterator<Iterator>;
+
+public:
+    reverse_iterator() { }
+
+    explicit reverse_iterator(iterator_type x) : current(x) {}
+
+    reverse_iterator(const Self& x) : current(x.current) {}
+
+    template<class Iter>
+    reverse_iterator(const reverse_iterator<Iter>& x) : current(x.base()) {}
+
+    iterator_type base() const { return current; }
+
+    reference operator*() const 
+    {
+        Iterator tmp = current;
+        return *--tmp;
+    }
+
+    pointer operator->() const 
+    {
+        return &(operator*());
+    }
+
+    Self& operator++()
+    {
+        --current;
+        return *this;
+    }
+
+    Self operator++(int)
+    {
+        Self tmp = *this;
+        --current;
+        return tmp;
+    }
+
+    Self& operator--()
+    {
+        ++current;
+        return *this;
+    }
+
+    Self operator--(int)
+    {
+        Self tmp = *this;
+        ++current;
+        return tmp;
+    }
+
+    Self operator+(difference_type n) const 
+    {
+        return Self(current - n);
+    }
+
+    Self& operator+=(difference_type n)
+    {
+        current -= n;
+        return *this;
+    }
+
+    Self operator-(difference_type n) const 
+    {
+        return Self(current + n);
+    }
+
+    Self& operator-=(difference_type n)
+    {
+        current += n;
+        return *this;
+    }
+
+    reference operator[](difference_type n) const 
+    {
+        return *(*this + n);
+    }
+};
+
+template <class Iterator>
+inline bool operator==(const reverse_iterator<Iterator>& x, 
+                       const reverse_iterator<Iterator>& y) {
+  return x.base() == y.base();
+}
+
+template <class Iterator>
+inline bool operator<(const reverse_iterator<Iterator>& x, 
+                      const reverse_iterator<Iterator>& y) {
+  return y.base() < x.base();
+}
+
+template <class Iterator>
+inline bool operator!=(const reverse_iterator<Iterator>& x,
+                       const reverse_iterator<Iterator>& y)
+{
+    return !(x == y)
+}
+
+template <class Iterator>
+inline bool operator>(const reverse_iterator<Iterator>& x, 
+                      const reverse_iterator<Iterator>& y) {
+  return y < x;
+}
+
+template <class Iterator>
+inline bool operator<=(const reverse_iterator<Iterator>& x, 
+                       const reverse_iterator<Iterator>& y) {
+  return !(y < x);
+}
+
+template <class Iterator>
+inline bool operator>=(const reverse_iterator<Iterator>& x, 
+                      const reverse_iterator<Iterator>& y) {
+  return !(x < y);
+}
+
+template <class Iterator>
+inline typename reverse_iterator<Iterator>::difference_type
+operator-(const reverse_iterator<Iterator>& x, 
+          const reverse_iterator<Iterator>& y) {
+  return y.base() - x.base();
+}

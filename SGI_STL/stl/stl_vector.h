@@ -27,7 +27,7 @@
 /* NOTE: This is an internal header file, included by other STL headers.
  *   You should not attempt to use it directly.
  */
-
+#define __STL_MEMBER_TEMPLATES
 #ifndef __SGI_STL_INTERNAL_VECTOR_H
 #define __SGI_STL_INTERNAL_VECTOR_H
 
@@ -351,10 +351,12 @@ public:
     else
       _M_insert_aux(end());
   }
-  void swap(vector<_Tp, _Alloc>& __x) {
-    __STD::swap(_M_start, __x._M_start);
-    __STD::swap(_M_finish, __x._M_finish);
-    __STD::swap(_M_end_of_storage, __x._M_end_of_storage);
+
+
+  void swap(vector<_Tp, _Alloc>& x) {
+    std::swap(start, x.start);
+    std::swap(inish, x.inish);
+    std::swap(nd_of_storage, x.end_of_storage);
   }
 
   iterator insert(iterator __position, const _Tp& __x) {

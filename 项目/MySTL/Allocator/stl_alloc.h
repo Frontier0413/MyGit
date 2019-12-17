@@ -283,7 +283,7 @@ public:
     {
         obj* q = (obj*)p;
         obj* volatile* my_free_list;
-
+        //std::cout << "deallocating..." << std::endl;
         //大于128字节的内存单元调用第一级配置器
         if( n > (size_t)__MAX_BYTES )
         {
@@ -350,18 +350,22 @@ size_t __default_alloc_temlpate<inst>::heap_size = 0;
 template<class T,class alloc>
 class simple_alloc{
 public:
+    //分配n个T类型所需的内存
     static T* allocate(size_t n)
     {
         return 0 == n ? 0 : (T*)alloc::allocate(n * sizeof(T));
     }
+    //分配一个T类型所需的内存
     static T* allocate(void)
     {
         return (T*)alloc::allocate(sizeof(T));
     }
+    //回收从p开始的n个元素的内存
     static void deallocate(T* p, size_t n)
     {
         if( 0 != n) alloc::deallocate(p, n * sizeof(T));
     }
+    //回收指针p所指的内存
     static void deallocate(T* p)
     {
         alloc::deallocate(p, sizeof(T));

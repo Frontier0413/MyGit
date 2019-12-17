@@ -369,6 +369,7 @@ public:
     return __tmp;
   }
   iterator insert(iterator __position) { return insert(__position, _Tp()); }
+#define __STL_MEMBER_TEMPLATES
 #ifdef __STL_MEMBER_TEMPLATES
   // Check whether it's an integral type.  If so, it's not an iterator.
 
@@ -558,7 +559,7 @@ inline bool operator<(const list<_Tp,_Alloc>& __x,
   return lexicographical_compare(__x.begin(), __x.end(),
                                  __y.begin(), __y.end());
 }
-
+#define __STL_FUNCTION_TMPL_PARTIAL_ORDER
 #ifdef __STL_FUNCTION_TMPL_PARTIAL_ORDER
 
 template <class _Tp, class _Alloc>
