@@ -5,18 +5,144 @@
 #include "../Allocator/stl_uninitialized.h"
 #include "../TypeTraits/IsInteger.h"
 
+template <class T, class Ref, class Ptr>
+class __vector_iterator
+{
+public:
+	using value_type = T;
+	using reference = Ref;
+	using pointer = Ptr;
+	using difference_type = ptrdiff_t;
+	using iterator_category = random_access_iterator_tag;
+
+	using self = __vector_iterator<T, Ref, Ptr>;
+	//using iterator = __vector_iterator<T, T&, T*>;
+	//using const_iterator = __vector_iterator<T, const T&, const T*>;
+protected:
+	T* p;
+
+public:
+	__vector_iterator(T* t) : p(t) { }
+
+	__vector_iterator() : p(nullptr) { }
+
+	__vector_iterator(const self& x) : p(x.p) { }
+
+
+	self& operator=(const self& x)
+	{
+		p = x.p;
+		return *this;
+	}
+
+	reference operator*() const
+	{
+		return *p;
+	}
+
+	pointer operator->() const 
+	{
+		return p;
+	}
+
+	bool operator==(const self& x) const
+	{
+		return p == x.p;
+	}
+
+	bool operator!=(const self& x) const 
+	{
+		return !(p == x.p);
+	}
+
+	bool operator<(const self& x) const 
+	{
+		return p < x.p;
+	}
+
+	bool operator>(const self& x) const 
+	{
+		return x.p < p;
+	}
+
+	bool operator<=(const self& x) const 
+	{
+		return !(x.p < p);
+	}
+
+	bool operator>=(const self& x) const 
+	{
+		return !(p < x.p);
+	}
+
+	self& operator++()
+	{
+		++p;
+		return *this;
+	}
+
+	self operator++(int)
+	{
+		self tmp = *this;
+		++p;
+		return tmp;
+	}
+
+	self& operator+=(difference_type n)
+	{
+		p += n;
+		return *this;
+	}
+
+	self operator+(difference_type n)
+	{
+		self tmp = *this;
+		return tmp += n;
+	}
+
+	self& operator--()
+	{
+		--p;
+		return *this;
+	}
+
+	self operator--(int)
+	{
+		self tmp = *this;
+		--p;
+		return tmp;
+	}
+
+	self& operator-=(difference_type n)
+	{
+		p -= n;
+		return *this;
+	}
+
+	self operator-(difference_type n)
+	{
+		self tmp = *this;
+		return tmp -= n;
+	}
+
+	difference_type operator-(const self& x) const 
+	{
+		return p - x.p;
+	}
+};
+
 template <class T, class Alloc = alloc>
 class vector
 {
 public:
 	//定义vector类型别名
 	using value_type = T;
-	using pointer = value_type *;
+	using pointer = value_type*;
 	using const_pointer = const value_type *;
-	using iterator = value_type *;
-	using const_iterator = const value_type *;
-	using reference = value_type &;
-	using const_reference = const value_type &;
+	using iterator = __vector_iterator<T, T&, T*>;
+	using const_iterator = __vector_iterator<T, const T&, const T*>;
+	using reference = value_type&;
+	using const_reference = const value_type&;
 	using size_type = size_t;
 	using difference_type = ptrdiff_t;
 
@@ -24,14 +150,14 @@ protected:
 	//默认使用第二级配置器
 	using data_allocator = simple_alloc<value_type, Alloc>;
 	//start为内存开始位置，finish为尾元素后位置，end_of_storage为内存结束位置
-	iterator start;
-	iterator finish;
-	iterator end_of_storage;
+	pointer start;
+	pointer finish;
+	pointer end_of_storage;
 
-	//分配n个T类型所需的内存，并使用x为初值初始化,返回分配内存的首地址
-	iterator allocate_and_fill(size_type n, const T &x)
+	//分配n个T类型所需的内存，并使用x为初值初始化,返回指向首地址的指针
+	pointer allocate_and_fill(size_type n, const T& x)
 	{
-		iterator result = data_allocator::allocate(n);
+		pointer result = data_allocator::allocate(n);
 		try
 		{
 			uninitialized_fill_n(result, n, x);
@@ -43,11 +169,11 @@ protected:
 		}
 	}
 
-	//分配n个字节的内存，并将first到last区间的元素拷贝的申请的内存上,返回拷贝元素区间的尾后迭代器
+	//分配n个字节的内存，并将first到last区间的元素拷贝的申请的内存上,返回首地址指针
 	template <class ForwardIterator>
-	iterator allocate_and_copy(size_type n, ForwardIterator first, ForwardIterator last)
+	pointer allocate_and_copy(size_type n, ForwardIterator first, ForwardIterator last)
 	{
-		iterator result = data_allocator::allocate(n);
+		pointer result = data_allocator::allocate(n);
 		try
 		{
 			uninitialized_copy(first, last, result);
@@ -79,6 +205,7 @@ protected:
 public:
 	//返回首元素迭代器
 	iterator begin() { return start; }
+	//const vector表示的是vector的元素不可改变，可以认为vector的元素都是const的，因此可用Const_iterator
 	const_iterator begin() const { return start; }
 
 	//返回尾后迭代器
@@ -100,7 +227,7 @@ public:
 	//返回vector内存长度，即start到end_of_storage
 	size_type capacity() const
 	{
-		return size_type(end_of_storage - begin());
+		return size_type(end_of_storage - start);
 	}
 
 	//判断vector元素是否为空，为空返回true
@@ -166,20 +293,6 @@ public:
 		}
 	}
 
-	//不给定初值，使用T默认构造函数构造初值
-	void push_back()
-	{
-		if(finish != end_of_storage)
-		{
-			construct(finish);
-			++finish;
-		}
-		else 
-		{
-			insert_aux(end());
-		}
-	}
-
 	//将vector与x互换
 	void swap(vector<T, Alloc> &x)
 	{
@@ -203,7 +316,7 @@ public:
 		if (position + 1 != end())
 		{
 			//在调用赋值运算符的时候，被覆盖的元素需要调用析构函数的就会在赋值函数中自己调用
-			copy(position + 1, finish, position);
+			copy(position + 1, end(), position);
 		}
 		//删除元素之后，vector长度减一，删除最后一个元素。
 		--finish;
@@ -219,7 +332,7 @@ public:
 		//将last到finish区间的元素拷贝到first开始的区间
 		iterator i = copy(last, finish, first);
 		//将后面的元素删除
-		destory(i, finish);
+		destory(i, end());
 		//重置finish位置
 		finish = finish - (last - first);
 		return first;
@@ -234,12 +347,6 @@ public:
 			erase(begin() + new_size, end());
 		else
 			insert(end(), new_size - size(), x);
-	}
-
-	//重置vector长度，如果添加元素，使用默认值初始化
-	void resize(size_type new_size)
-	{
-		resize(new_size, T());
 	}
 
 	//删除start到finish区间所有元素
@@ -257,7 +364,7 @@ public:
 		{
 			//重新申请长度为n的内存，将原内存元素拷贝到新内存上
 			const size_type old_size = size();
-			iterator new_start = allocate_and_copy(n, start, finish);
+			pointer new_start = allocate_and_copy(n, start, finish);
 			//释放原内存
 			destory(start, finish);
 			data_allocator::deallocate(start, end_of_storage - start);
@@ -284,7 +391,7 @@ public:
 			//如果n小于内存长度但大于元素长度，对于start到finish，可以直接fill，
 			//但是对于finish后的内存，应该调用未初始化的fill函数.
 			fill(begin(), end(), value);
-			finish = uninitialized_fill(finish, n - size(), value);
+			finish = uninitialized_fill_n(finish, n - size(), value);
 		}
 		else
 		{
@@ -322,7 +429,7 @@ protected:
 	{
 		//对于输入迭代器，以==判断循环终止，通过累加遍历
 		iterator cur = begin();
-		for (; first != last && cur != finish; ++cur, ++first)
+		for (; first != last && cur != end(); ++cur, ++first)
 			*cur = *first;
 		//如果first,last区间结束，而cur仍未到达finish，删除之后的元素
 		if (first == last)
@@ -341,7 +448,7 @@ protected:
 		if (len > capacity())
 		{
 			//申请一个新内存，将first,last区间拷贝到新内存上，并释放原内存
-			iterator tmp = allocate_and_copy(len, first, last);
+			pointer tmp = allocate_and_copy(len, first, last);
 			destory(start, finish);
 			data_allocator::deallocate(start, end_of_storage - start);
 			start = tmp;
@@ -350,7 +457,7 @@ protected:
 		//如果n小于元素长度，将first,last区间覆盖原元素，删除多余的元素
 		else if (size() >= len)
 		{
-			iterator new_finish = copy(first, last, start);
+			pointer new_finish = copy(first, last, start);
 			destory(new_finish, finish);
 			finish = new_finish;
 		}
@@ -393,20 +500,6 @@ public:
 		return begin() + n;
 	}
 
-	//在position迭代器插入元素T()，返回指向该元素的迭代器
-	iterator insert(iterator position)
-	{
-		size_type n = position - begin();
-		if(finish != end_of_storage && position == end())
-		{
-			construct(finish);
-			++finish;
-		}
-		else 
-			insert_aux(position);
-		return begin() + n;
-	}
-
 	//检查输入是否为(pos, size, value)的形式，如果是，调用fill_insert，如果不是根据迭代器选择不同的版本
 	template <class InputIterator>
 	void insert(iterator pos, InputIterator first, InputIterator last)
@@ -419,8 +512,6 @@ protected:
 	void fill_insert(iterator position, size_type n, const T &x);
 
 	void insert_aux(iterator position, const T &x);
-
-	void insert_aux(iterator position);
 
 	template <class Integer>
 	void insert_dispatch(iterator position, Integer n, Integer value, __true_type)
@@ -462,14 +553,8 @@ public:
 		fill_initialize(n, value);
 	}
 
-	//构造函数，vector初始化为n个元素，初值为默认初始化
-	explicit vector(size_type n)
-	{
-		fill_initialize(n, T());
-	}
-
 	//拷贝构造函数,构造为vector x的副本
-	vector(vector<T, Alloc> &x)
+	vector(const vector<T, Alloc> &x)
 	{
 		start = data_allocator::allocate(x.size());
 		finish = uninitialized_copy(x.begin(), x.end(), start);
@@ -536,7 +621,7 @@ public:
 			//构造新的内存，长度为x.size()，并释放vector原来的内存空间
 			if (xlen > capacity())
 			{
-				iterator new_start = allocate_and_copy(xlen, x.begin(), x.end());
+				pointer new_start = allocate_and_copy(xlen, x.begin(), x.end());
 				destory(start, finish);
 				data_allocator::deallocate(start, end_of_storage - start);
 				start = new_start;
@@ -545,7 +630,7 @@ public:
 			//如果xlen小于vector的size，直接将x的元素拷贝到当前vector内，并销毁多余的元素
 			else if (size() >= xlen)
 			{
-				iterator i = copy(x.begin(), x.end(), begin());
+				pointer i = copy(x.begin(), x.end(), start);
 				destory(i, finish);
 			}
 			//如果x的长度大于size小于capacity，直接将x的元素拷贝过去
@@ -580,7 +665,7 @@ void vector<T, Alloc>::insert_aux(iterator position, const T &x)
 		++finish;
 		T x_copy = x;
 		//将区间position到finish-2从后开始拷贝到finish-1开始的区间
-		copy_backward(position, finish - 2, finish - 1);
+		copy_backward(position, end() - 2, finish - 1);
 		//令position位置为拷贝的元素
 		*position = x_copy;
 	}
@@ -591,18 +676,18 @@ void vector<T, Alloc>::insert_aux(iterator position, const T &x)
 		//如果原长度为0，则新长度为1，如果原长度不为0，则新长度为原长度的两倍
 		const size_type len = old_size != 0 ? 2 * old_size : 1;
 		//分配新长度所需的内存
-		iterator new_start = data_allocator::allocate(len);
-		iterator new_finish = new_start;
+		pointer new_start = data_allocator::allocate(len);
+		pointer new_finish = new_start;
 
 		try
 		{
 			//将原vector中start到position区间元素拷贝到new_start开始的区间
-			new_finish = uninitialized_copy(start, position, new_start);
+			new_finish = uninitialized_copy(begin(), position, new_start);
 			//用x作为初值在下一位置构造元素
 			construct(new_finish, x);
 			++new_finish;
 			//再讲posotion到finish区间内元素拷贝到新vector内。
-			new_finish = uninitialized_copy(position, finish, new_finish);
+			new_finish = uninitialized_copy(position, end(), new_finish);
 		}
 		catch (...)
 		{
@@ -622,42 +707,6 @@ void vector<T, Alloc>::insert_aux(iterator position, const T &x)
 	}
 }
 
-template <class T, class Alloc>
-void vector<T, Alloc>::insert_aux(iterator position)
-{
-	if(finish != end_of_storage)
-	{
-		consruct(finish, *(finish - 1));
-		++finish;
-		copy_backward(position, finish - 2, finish - 1);
-		*position = T();
-	}
-	else 
-	{
-		const size_type old_size = size();
-		const size_type len = old_size != 0 ? 2 * old_size : 1;
-		iterator new_start = data_allocator::allocate(len);
-		iterator new_finish = new_start;
-		try
-		{
-			new_finish = uninitialized_copy(start, position, new_start);
-			construct(new_finish);
-			++new_finish;
-			new_finish = uninitialized_copy(position, finish, new_finish);
-		}
-		catch(...)
-		{
-			destory(new_start, new_finish);
-			data_allocator::deallocate(new_start, len);
-		}
-		destory(begin(), end());
-		data_allocator::deallocate(start, end_of_storage - start);
-		start = new_start;
-		finish = new_finish;
-		end_of_storage = start + len;
-	}
-}
-
 //在position位置前插入n个元素，使用x为初值初始化
 template <class T, class Alloc>
 void vector<T, Alloc>::fill_insert(iterator position, size_type n, const T &x)
@@ -672,13 +721,13 @@ void vector<T, Alloc>::fill_insert(iterator position, size_type n, const T &x)
 			//elems_after为插入位置之后的元素
 			const size_type elems_after = finish - position;
 			//记录之前finish位置
-			iterator old_finish = finish;
+			pointer old_finish = finish;
 			//如果插入位置之后的元素多于要插入的元素
 			if (elems_after > n)
 			{
-				uninitialized_copy(finish - n, finish, finish);
+				uninitialized_copy(end() - n, end(), finish);
 				finish += n;
-				copy_backward(position, old_finish - n, old_finish);
+				copy_backward(position, iterator(old_finish - n), old_finish);
 				fill(position, position + n, x_copy);
 			}
 			else
@@ -687,9 +736,9 @@ void vector<T, Alloc>::fill_insert(iterator position, size_type n, const T &x)
 				//因此直接在finish位置后构造对应数目的元素，避免先移动后拷贝
 				uninitialized_fill_n(finish, n - elems_after, x_copy);
 				finish += n - elems_after;
-				uninitialized_copy(position, old_finish, finish);
+				uninitialized_copy(position, iterator(old_finish), finish);
 				finish += elems_after;
-				fill(position, old_finish, x_copy);
+				fill(position, iterator(old_finish), x_copy);
 			}
 		}
 		//如果剩余内存不足以插入元素
@@ -698,16 +747,16 @@ void vector<T, Alloc>::fill_insert(iterator position, size_type n, const T &x)
 			const size_type old_size = size();
 			//如果插入元素的长度大于vector原长度，则新长度为old+n，否则为两倍原长度
 			const size_type len = old_size + max(old_size, n);
-			iterator new_start = data_allocator::allocate(len);
-			iterator new_finish = new_start;
+			pointer new_start = data_allocator::allocate(len);
+			pointer new_finish = new_start;
 			try
 			{
 				//先将start到position的元素拷贝到新内存
 				//再在新内存构造要插入的元素
 				//最后将position到finish拷贝到新内存
-				new_finish = uninitialized_copy(start, position, new_start);
+				new_finish = uninitialized_copy(begin(), position, new_start);
 				new_finish = uninitialized_fill_n(new_finish, n, x);
-				new_finish = uninitialized_copy(position, finish, new_finish);
+				new_finish = uninitialized_copy(position, end(), new_finish);
 			}
 			catch (...)
 			{
@@ -749,13 +798,13 @@ void vector<T, Alloc>::range_insert(iterator position, ForwardIterator first, Fo
 		if (size_type(end_of_storage - finish) >= n)
 		{
 			const size_type elems_after = finish - position;
-			iterator old_finish = finish;
+			pointer old_finish = finish;
 			//如果插入位置之后的元素大于要插入的元素
 			if (elems_after > n)
 			{
-				uninitialized_copy(finish - n, finish, finish);
+				uninitialized_copy(end() - n, end(), finish);
 				finish += n;
-				copy_backward(position, old_finish - n, old_finish);
+				copy_backward(position, iterator(old_finish - n), old_finish);
 				copy(first, last, position);
 			}
 			else
@@ -763,8 +812,8 @@ void vector<T, Alloc>::range_insert(iterator position, ForwardIterator first, Fo
 				ForwardIterator mid = first;
 				advance(mid, elems_after);
 				uninitialized_copy(mid, last, finish);
-				finish += n - elems_after;
-				uninitialized_copy(position, old_finish, finish);
+				finish += (n - elems_after);
+				uninitialized_copy(position, iterator(old_finish), finish);
 				finish += elems_after;
 				copy(first, mid, position);
 			}
@@ -774,14 +823,14 @@ void vector<T, Alloc>::range_insert(iterator position, ForwardIterator first, Fo
 		{
 			const size_type old_size = size();
 			const size_type len = old_size + max(old_size, n);
-			iterator new_start = data_allocator::allocate(len);
-			iterator new_finish = new_start;
+			pointer new_start = data_allocator::allocate(len);
+			pointer new_finish = new_start;
 
 			try
 			{
-				new_finish = uninitialized_copy(start, position, new_start);
+				new_finish = uninitialized_copy(begin(), position, new_start);
 				new_finish = uninitialized_copy(first, last, new_finish);
-				new_finish = uninitialized_copy(position, finish, new_finish);
+				new_finish = uninitialized_copy(position, end(), new_finish);
 			}
 			catch (...)
 			{

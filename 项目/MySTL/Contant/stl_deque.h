@@ -27,7 +27,7 @@ struct _Deque_Iterator
     //没有继承迭代器类的自定义迭代器需要自定义型别信息
     using iterator_category = random_access_iterator_tag;
     using value_type        = T;
-    using pointer           = ptr;
+    using pointer           = Ptr;
     using reference         = Ref;
     using size_type         = size_t;
     using difference_type   = ptrdiff_t;
@@ -83,10 +83,10 @@ struct _Deque_Iterator
         return *this;
     }
 
-    Self& operator++(int)
+    Self operator++(int)
     {
-        Self temp = *this;
-        ++this;
+        Self tmp = *this;
+        ++*this;
         return tmp;
     }
 
@@ -194,8 +194,8 @@ class deque
 public:
     using iterator          = _Deque_Iterator<T, T&, T*>;
     using const_iterator    = _Deque_Iterator<T, const T&, const T*>;
-    using reverse_iterator  = reverse_iterator<iterator>;
-    using const_reverse_iterator = reverse_iterator<const iterator>;
+    using reverse_iterator  = __reverse_iterator<iterator>;
+    using const_reverse_iterator = __reverse_iterator<const iterator>;
 
     using value_type        = T;
     using pointer           = value_type*;
@@ -205,7 +205,7 @@ public:
     using size_type         = size_t;
     using difference_type   = ptrdiff_t;
 
-    //num_elements为元素数目
+    //初始化容器，使容器能容纳num_elements个元素
     deque(size_t num_elements) : map(nullptr), map_size(0), start(), finish()
     {
         initialize_map(num_elements);
@@ -214,6 +214,8 @@ public:
     deque() : map(nullptr), map_size(0), start(), finish() { }
 
 protected:
+
+    //初始化map指针，使其都指向申请的缓冲区，保证两端各有一个备用的缓冲区
     void initialize_map(size_t num_elements)
     {
         //计算出所需缓冲区数目
@@ -320,6 +322,7 @@ public:
     const_iterator begin() const { return start; }
     const_iterator end() const { return finish; }
 
+    //调用迭代器的[]运算符实现随机访问,下标n其实就是相对于start迭代器偏移n个单位的元素
     reference operator[](size_type n)
     {
         return start[difference_type(n)];
@@ -330,6 +333,7 @@ public:
         return start[difference_type(n)];
     }
 
+    //相对来说较为安全的访问元素方式，在调用下标运算符之前会先检查该下标是否合法
     void range_check(size_type n) const 
     {
         if(n >= this->size())
@@ -372,6 +376,7 @@ public:
         return *tmp;
     }
 
+    //通过迭代器的-运算符，得到尾后迭代器与头迭代器的距离
     size_type size() const 
     {
         return finish - start;
@@ -388,26 +393,30 @@ public:
     }
 
 public:
+    //拷贝构造函数
     deque(const deque& x) : deque(x.szie())
     {
         uninitialized_copy(x.begin(), x.end(), start);
     }
 
+    //列表初始化
+    deque(std::initializer_list<T> l) : deque(l.size())
+    {
+        uninitialized_copy(l.begin(), l.end(), start);
+    }
+
+    //将deque初始化为含有n个值为value的元素
     deque(size_type n, const value_type& value) : deque(n)
     {
-        fill_initialize(value_type());
+        fill_initialize(value);
     }
 
-    explicit deque(size_type n) : deque(n)
-    {
-        fill_initialize(value_type());
-    }
-
+    //接受迭代器范围的构造函数
     template <class InputIterator>
     deque(InputIterator first, InputIterator last) : deque()
     {
         using Integer = typename Is_Integer<InputIterator>::Integer;
-        initialize_dispatch(first, last, Integer);
+        initialize_dispatch(first, last, Integer());
     }
 
 private:
@@ -415,7 +424,7 @@ private:
     void initialize_dispatch(Integer n, Integer value, __true_type)
     {
         initialize_map(n);
-        fill_initialize(x);
+        fill_initialize(value);
     }
 
     template <class InputIterator>
@@ -425,23 +434,28 @@ private:
     }
 
 public:
+    //析构函数，检测是否使用了内存，如果map不为空，即表明deque使用了动态内存，则需要手动释放
     ~deque()
     {
-        destory(start, finish);
         if(map)
         {
+            destory(start, finish);
             destory_nodes(start.node, finish.node + 1);
             deallocate_map(map, map_size);
         }
     }
 
+    //拷贝赋值运算符
     deque& operator=(const deque& x)
     {
         const size_type len = size();
+        //检测自赋值
         if(&x != this)
         {
+            //如果x长度小于deque长度，将x元素拷贝至容器内，再将剩余元素删除
             if(len >= x.size())
                 erase(copy(x.begin(), x.end(), start), finish);
+            //如果x长度大于deque长度，对于已有的元素，采用赋值运算覆盖原元素，随后在finish位置调用insert插入剩余元素
             else 
             {
                 const_iterator mid = x.begin() + difference_type(len);
@@ -575,7 +589,7 @@ public:
     }
 
 public:
-
+    //在pos位置前插入元素x，后续元素向后移动，返回指向该元素x的迭代器
     iterator insert(iterator position, const value_type& x)
     {
         if(position.cur == start.cur)
@@ -592,11 +606,12 @@ public:
         }
         else 
         {
+            //如果不在头位置或者尾后位置，则调用辅助函数
             return insert_aux(position, x);
         }
     }
 
-    void insert(iterator position, size_type n. const value_type& x)
+    void insert(iterator position, size_type n, const value_type& x)
     {
         fill_insert(position, n, x);
     }
@@ -654,9 +669,10 @@ private:
     }
 
 public:
+    //删除pos迭代器指代的元素，返回pos下一位置的迭代器
     iterator erase(iterator position)
     {
-        iterator next = pos;
+        iterator next = position;
         ++next;
         difference_type index = position - start;
         if(size_type(index) < (this->size() >> 1))
@@ -672,6 +688,7 @@ public:
         return start + index;
     }
 
+    //删除区间[first, last)区间的元素，返回指向删除区间下一元素的迭代器
     iterator erase(iterator first, iterator last)
     {
         if(first == start && last == finish)
@@ -683,12 +700,14 @@ public:
         {
             difference_type n = last - first;
             difference_type elems_before = first - start;
+            //如果待删除区间之前的元素更少，则将更少的元素向后移动更效率
+            //这里并没有直接比较删除区间之前的元素与之后的元素，而是判断与剩余元素的一半的大小关系,因为deque迭代器的减法操作可能更费时
             if(elems_before < difference_type( (this->size() - n) / 2 ))
             {
                 copy_backward(start, first, last);
                 iterator new_start = start + n;
                 destory(start, new_start);
-                destory_nodes(new_start.node, start.node);
+                destory_nodes(start.node, new_start.node);
                 start = new_start;
             }
             else 
@@ -705,18 +724,22 @@ public:
 
     void clear()
     {
+        //start与finish的node可能是同一个缓冲区，因此判断从start.node + 1开始，避免同一缓冲区时未初始化的内存被调用析构函数
         for(map_pointer node = start.node + 1;
             node < finish.node; ++node)
         {
             destory(*node, *node + buffer_size());
             deallocate_node(*node);
         }
+        //如果不是同一缓冲区，则说明start的缓冲区尚未被释放
         if(start.node != finish.node)
         {
             destory(start.cur, start.last);
-            destory(finish,first, finish.cur);
+            destory(finish.first, finish.cur);
+            //这里只释放了finish.node指向的缓冲区，start.node的缓冲区留作备用
             deallocate_node(finish.first);
         }
+        //指向同一缓冲区时，释放元素即可，唯一一块缓冲区留作备用
         else 
         {
             destory(start.cur, finish.cur);
@@ -727,6 +750,7 @@ public:
 
 protected:
 
+    //填充初始化
     void fill_initialize(const value_type& value)
     {
         map_pointer cur;
@@ -741,6 +765,7 @@ protected:
         }
     }
 
+    // 对于输入迭代器，由于无法事先知道序列大小，因此对每个元素依次调用push_back函数
     template <class InputIterator>
     void range_initialize(InputIterator first, InputIterator last, input_iterator_tag)
     {
@@ -755,6 +780,7 @@ protected:
         }
     }
 
+    // 对于前向迭代器，先求出序列长度，初始化map之后以此对每个元素初始化
     template <class ForwardIterator>
     void range_initialize(ForwardIterator first, ForwardIterator last, forward_iterator_tag)
     {
@@ -768,6 +794,7 @@ protected:
                 cur_node < finish.node; ++cur_node)
             {
                 ForwardIterator mid = first;
+                //每次拷贝缓冲区元素数目个元素
                 advance(mid, buffer_size());
                 uninitialized_copy(first, mid, *cur_node);
                 first = mid;
@@ -779,7 +806,8 @@ protected:
         }
     }
 
-    void push_back_aux(const valye_type& x)
+    //在调用辅助函数之前已经判断，调用情况为边界条件，因此直接申请内存而无需去判断
+    void push_back_aux(const value_type& t)
     {
         value_type t_copy = t;
         reserve_map_at_back();
@@ -795,7 +823,7 @@ protected:
         }
     }
 
-    void push_front_aux(const value_type& x)
+    void push_front_aux(const value_type& t)
     {
         value_type t_copy = t;
         reserve_map_at_front();
@@ -852,14 +880,14 @@ protected:
         }
         else if(position.cur == finish.cur)
         {
-            iterator new_finsih = reserve_elements_at_back(n);
+            iterator new_finish = reserve_elements_at_back(n);
             try 
             {
                 uninitialized_copy(first, last, finish);
-                finish = new_finsih;
-            }catcj(...)
+                finish = new_finish;
+            }catch(...)
             {
-                destory_nodes(finsih.node + 1, new_finish.node + 1);
+                destory_nodes(finish.node + 1, new_finish.node + 1);
             }
         }
         else 
@@ -874,6 +902,7 @@ protected:
         value_type x_copy = x;
         if(size_type(index) < this->size() / 2)
         {
+            //如果内存不够的话，push_front函数会处理
             push_front(front());
             iterator front1 = start;
             ++front1;
@@ -912,7 +941,7 @@ protected:
             {
                 if(elems_before >= difference_type(n))
                 {
-                    iterator start_n start + difference_type(n);
+                    iterator start_n  = start + difference_type(n);
                     uninitialized_copy(start, start_n, new_start);
                     start = new_start;
                     copy(start_n, position, old_start);
@@ -932,7 +961,7 @@ protected:
         else 
         {
             iterator new_finish = reserve_elements_at_back(n);
-            iterator old_finsih = finsih;
+            iterator old_finish = finish;
             const difference_type elems_after = difference_type(length) - elems_before;
             position = finish - elems_after;
             try 
@@ -940,9 +969,9 @@ protected:
                 if(elems_after > difference_type(n))
                 {
                     iterator finish_n = finish - difference_type(n);
-                    uninitialized_copy(finsih_n, finish, finish);
-                    finish = new_finsih;
-                    copy_backward(position, finsih_n, old_finish);
+                    uninitialized_copy(finish_n, finish, finish);
+                    finish = new_finish;
+                    copy_backward(position, finish_n, old_finish);
                     fill(position, position + difference_type(n), x_copy);
                 }
                 else 
@@ -1011,8 +1040,8 @@ protected:
                 {
                     ForwardIterator mid = first;
                     advance(mid, elems_after);
-                    uninitialized_copy_copy(mid, last, position, finish, finsih);
-                    finsih = new_finish;
+                    uninitialized_copy_copy(mid, last, position, finish, finish);
+                    finish = new_finish;
                     copy(first, mid, position);
                 }
             }catch(...)
@@ -1091,14 +1120,16 @@ protected:
         map_pointer new_nstart;
         if(map_size > 2 * new_num_nodes)
         {
-            new_nstart = map + (map_size - new_num_nodes) / 2 + (add_at_front ? nodes_to_add ； 0);
-            if(new_start < start.node)
+            //将剩余map平均分配给前后两端，如果是在前端插入新节点，则将原start向后移动需要添加的节点数，保证足够插入元素
+            new_nstart = map + (map_size - new_num_nodes) / 2 + (add_at_front ? nodes_to_add : 0);
+            if(new_nstart < start.node)
                 copy(start.node, finish.node + 1, new_nstart);
             else 
-                copy_backward(start.node, finsih.node + 1, new_nstart + old_num_nodes);
+                copy_backward(start.node, finish.node + 1, new_nstart + old_num_nodes);
         }
         else 
         {
+            //当前map不够存储节点数目时，新的map大小为原map大小加上原map大小与新加入的节点数中取大的那个，最后再加上2(预留给前后两端各一个)
             size_type new_map_size = map_size + max(map_size, nodes_to_add) + 2;
 
             map_pointer new_map = allocate_map(new_map_size);

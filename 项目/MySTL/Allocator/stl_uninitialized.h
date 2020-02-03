@@ -37,10 +37,7 @@ inline ForwardIterator uninitialized_fill_n(ForwardIterator first, Size n, const
     return __uninitialized_fill_n(first, n, x, value_type(first));
 }
 
-//copy函数
-//copy函数将[first，last）前闭后开区间范围内的每一个对象，拷贝到result开始的未初始化的区域
-//对于pod类型，调用高阶函数copy
-//对于no pod类型，遍历区间依次调用stl_construct中的construct函数。
+
 inline char* uninitialized_copy(const char* first, const char* last, char* result)
 {
     memmove(result, first, last - first);
@@ -78,16 +75,17 @@ inline ForwardIterator __uninitialized_copy(InputIterator first, InputIterator l
 
 }
 
+//copy函数
+//copy函数将[first，last）前闭后开区间范围内的每一个对象，拷贝到result开始的未初始化的区域
+//对于pod类型，调用高阶函数copy
+//对于no pod类型，遍历区间依次调用stl_construct中的construct函数。
 template <class InputIterator,class ForwardIterator>
 ForwardIterator uninitialized_copy(InputIterator first, InputIterator last, ForwardIterator result)
 {
     return __uninitialized_copy(first, last, result, value_type(first));
 }
 
-//fill函数
-//在[first, last)范围内产生x的拷贝
-//对于pod类型，调用高阶函数fill
-//对于非pod类型，遍历区间依次调用construct函数
+
 template <class ForwardIterator, class T>
 inline void __uninitialized_fill_aux(ForwardIterator first, ForwardIterator last, const T& x, __true_type)
 {
@@ -111,8 +109,59 @@ inline void __uninitialized_fill(ForwardIterator first, ForwardIterator last, co
     __uninitialized_fill_aux(first, last, x, is_POD());
 }
 
+//fill函数
+//在[first, last)范围内产生x的拷贝
+//对于pod类型，调用高阶函数fill
+//对于非pod类型，遍历区间依次调用construct函数
 template <class ForwardIterator, class T>
 inline void uninitialized_fill(ForwardIterator first, ForwardIterator last, const T& x)
 {
     __uninitialized_fill(first, last, x, value_type(first));
+}
+
+//先将[first1,last1)区间拷贝到result，再将[first2,last2)区间拷贝到后续位置,返回下一位置的迭代器
+template <class InputIterator1, class InputIterator2, class ForwardIterator>
+inline ForwardIterator uninitialized_copy_copy(InputIterator1 first1, InputIterator1 last1,
+                                                InputIterator2 first2, InputIterator2 last2,
+                                                ForwardIterator result)
+{
+    ForwardIterator mid = uninitialized_copy(first1, last1, result);
+    try 
+    {
+        return uninitialized_copy(first2, last2, mid);
+    }catch(...)
+    {
+        destory(result, mid);
+    }
+}
+
+//先将区间[result,mid)初始化为x，再将[first, last)区间拷贝到后续位置，返回下一位置的迭代器
+template <class ForwardIterator, class T, class InputIterator>
+inline ForwardIterator uninitialized_fill_copy(ForwardIterator result, ForwardIterator mid, const T& x,
+                                                InputIterator first, InputIterator last)
+{
+    uninitialized_fill(result, mid, x);
+    try 
+    {
+        return uninitialized_copy(first, last, mid);
+    }catch(...)
+    {
+        destory(result, mid);
+    }
+}
+
+//先将[first1, last1)区间拷贝到first2开始的区间，然后后续位置到last2区间初始化为x，无返回值
+template <class InputIterator, class ForwardIterator, class T>
+inline void uninitialized_copy_fill(InputIterator first1, InputIterator last1,
+                                    ForwardIterator first2, ForwardIterator last2,
+                                    const T& x)
+{
+    ForwardIterator mid2 = uninitialized_copy(first1, last1, first2);
+    try 
+    {
+        uninitialized_fill(mid2, last2, x);
+    }catch(...)
+    {
+        destory(first2, mid2);
+    }
 }

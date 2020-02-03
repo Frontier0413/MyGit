@@ -1,7 +1,13 @@
 #include <iostream>
-using namespace std;
+#include <queue>
+#include <set>
+#include "Contant/stl_heap.h"
+#include "myhead.h"
+
 
 int main()
 {
-    cout << "hello world" << endl;
+    std::set<int> a;
+    a.insert(1);
+    a.erase(1);
 }

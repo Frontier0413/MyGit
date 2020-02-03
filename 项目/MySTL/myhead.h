@@ -3,6 +3,7 @@
 #include <list>
 #include "Contant/stl_vector.h"
 #include "Contant/stl_list.h"
+#include "Contant/stl_deque.h"
 
 
 template <class T>
@@ -46,5 +47,14 @@ void show_array(T (&a)[N])
 {
 	for( int i = 0; i < N; ++i)
 		std::cout << a[i] << " ";
+	std::cout << std::endl;
+}
+
+template <class T>
+void show_deque(deque<T>& x)
+{
+	auto first = x.begin();
+	while(first != x.end())
+		std::cout << *first++ << " ";
 	std::cout << std::endl;
 }

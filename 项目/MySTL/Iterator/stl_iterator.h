@@ -76,8 +76,6 @@ inline typename iterator_traits<Iterator>::value_type* value_type(const Iterator
     return static_cast<typename iterator_traits<Iterator>::value_type*>(0);
 }
 
-
-
 template <class InputIterator>
 inline typename iterator_traits<InputIterator>::difference_type 
 __distance(InputIterator first, InputIterator last, input_iterator_tag)
@@ -104,10 +102,9 @@ inline typename iterator_traits<InputIterator>::difference_type
 distance(InputIterator first, InputIterator last)
 {
     typedef typename iterator_traits<InputIterator>::iterator_category category;
-    __distance(first, last, category());
+    return __distance(first, last, category());
 }
 //对于随机访问迭代器，获取距离的最快方式就是直接相减，而对于不能随机访问的迭代器，只能通过循环来获得距离
-
 
 template <class InputIterator, class Distance>
 inline void __advance(InputIterator& i, Distance n, input_iterator_tag)
@@ -144,9 +141,9 @@ inline void advance(InputIterator& i, Distance n)
 }
 //同样的，对于随机访问迭代器，前进n距离只需要+n即可，对于其他类型，则需要通过循环。
 
-
+//reverse_iterator
 template <class Iterator>
-class reverse_iterator
+class __reverse_iterator
 {
 protected:
     Iterator current;
@@ -159,17 +156,17 @@ public:
     using reference         = typename iterator_traits<Iterator>::reference;
 
     using iterator_type     = Iterator;
-    using Self              = reverse_iterator<Iterator>;
+    using Self              = __reverse_iterator<Iterator>;
 
 public:
-    reverse_iterator() { }
+    __reverse_iterator() { }
 
-    explicit reverse_iterator(iterator_type x) : current(x) {}
+    explicit __reverse_iterator(iterator_type x) : current(x) {}
 
-    reverse_iterator(const Self& x) : current(x.current) {}
+    __reverse_iterator(const Self& x) : current(x.current) {}
 
     template<class Iter>
-    reverse_iterator(const reverse_iterator<Iter>& x) : current(x.base()) {}
+    __reverse_iterator(const __reverse_iterator<Iter>& x) : current(x.base()) {}
 
     iterator_type base() const { return current; }
 
@@ -239,45 +236,77 @@ public:
 };
 
 template <class Iterator>
-inline bool operator==(const reverse_iterator<Iterator>& x, 
-                       const reverse_iterator<Iterator>& y) {
+inline bool operator==(const __reverse_iterator<Iterator>& x, 
+                       const __reverse_iterator<Iterator>& y) {
   return x.base() == y.base();
 }
 
 template <class Iterator>
-inline bool operator<(const reverse_iterator<Iterator>& x, 
-                      const reverse_iterator<Iterator>& y) {
+inline bool operator<(const __reverse_iterator<Iterator>& x, 
+                      const __reverse_iterator<Iterator>& y) {
   return y.base() < x.base();
 }
 
 template <class Iterator>
-inline bool operator!=(const reverse_iterator<Iterator>& x,
-                       const reverse_iterator<Iterator>& y)
+inline bool operator!=(const __reverse_iterator<Iterator>& x,
+                       const __reverse_iterator<Iterator>& y)
 {
-    return !(x == y)
+    return !(x == y);
 }
 
 template <class Iterator>
-inline bool operator>(const reverse_iterator<Iterator>& x, 
-                      const reverse_iterator<Iterator>& y) {
+inline bool operator>(const __reverse_iterator<Iterator>& x, 
+                      const __reverse_iterator<Iterator>& y) {
   return y < x;
 }
 
 template <class Iterator>
-inline bool operator<=(const reverse_iterator<Iterator>& x, 
-                       const reverse_iterator<Iterator>& y) {
+inline bool operator<=(const __reverse_iterator<Iterator>& x, 
+                       const __reverse_iterator<Iterator>& y) {
   return !(y < x);
 }
 
 template <class Iterator>
-inline bool operator>=(const reverse_iterator<Iterator>& x, 
-                      const reverse_iterator<Iterator>& y) {
+inline bool operator>=(const __reverse_iterator<Iterator>& x, 
+                      const __reverse_iterator<Iterator>& y) {
   return !(x < y);
 }
 
 template <class Iterator>
-inline typename reverse_iterator<Iterator>::difference_type
-operator-(const reverse_iterator<Iterator>& x, 
-          const reverse_iterator<Iterator>& y) {
+inline typename __reverse_iterator<Iterator>::difference_type
+operator-(const __reverse_iterator<Iterator>& x, 
+          const __reverse_iterator<Iterator>& y) {
   return y.base() - x.base();
 }
+
+//insert_iterator
+template <class Container>
+class insert_iterator
+{
+protected:
+    Container* container;
+    typename Container::iterator iter;
+
+public:
+    using container_type = Container;
+    using iterator_category = output_iterator_tag;
+    using value_type = void;
+    using difference_type = void;
+    using pointer = void;
+    using reference = void;
+
+insert_iterator(Container& x,typename Container::iterator i) : container(x), iter(i) {}
+
+insert_iterator<Container>& operator=(const typename Container::value_type& value)
+{
+    iter = container->insert(iter, value);
+    ++iter;
+    return *this;
+}
+
+insert_iterator<Container>& operator*() { return *this; }
+
+insert_iterator<Container>& operator++() { return *this; }
+
+insert_iterator<Container>& operator++(int) { return *this; }
+};
