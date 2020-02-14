@@ -2,6 +2,8 @@
 struct __true_type { };
 struct __false_type { };
 
+namespace hxl
+{
 //基本模板类，默认所有型别为false_type=,即当我们无法确定型别时，默认所有操作都不是无关紧要的。
 template <class type>
 struct __type_traits
@@ -235,3 +237,4 @@ struct __type_traits<const unsigned char*>
 	typedef __true_type has_trivial_destructor;
 	typedef __true_type is_POD_type;
 };
+}

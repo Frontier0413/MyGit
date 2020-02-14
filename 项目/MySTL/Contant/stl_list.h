@@ -4,6 +4,8 @@
 #include "../Allocator/stl_alloc.h"
 #include "../Allocator/stl_uninitialized.h"
 #include "../TypeTraits/IsInteger.h"
+namespace hxl
+{
 template <class T>
 struct __list_node
 {
@@ -763,4 +765,5 @@ template <class T, class Alloc>
 inline void swap(list<T, Alloc> &x, list<T, Alloc> &y)
 {
     x.swap(y);
+}
 }

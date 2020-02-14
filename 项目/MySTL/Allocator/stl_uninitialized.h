@@ -3,6 +3,8 @@
 #include "../Allocator/stl_construct.h"
 #include "../Algorithm/stl_algobase.h"
 
+namespace hxl
+{
 //fill_n函数
 //在first迭代器开始的区间内，初始化n个元素为元素x的拷贝
 template <class ForwardIterator, class Size, class T>
@@ -164,4 +166,5 @@ inline void uninitialized_copy_fill(InputIterator first1, InputIterator last1,
     {
         destory(first2, mid2);
     }
+}
 }

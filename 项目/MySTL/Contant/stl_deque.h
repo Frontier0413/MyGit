@@ -5,6 +5,8 @@
 #include "../Allocator/stl_uninitialized.h"
 #include "../TypeTraits/IsInteger.h"
 
+namespace hxl
+{
 //返回每一块缓存区可容纳的元素数目
 //默认每一块缓存为512字节，如果存储类型大于512字节，则每块缓存只存储一个元素
 inline size_t __deque_buf_size(size_t size)
@@ -1187,4 +1189,5 @@ template <class T, class Alloc>
 inline void swap(deque<T, Alloc>& x, deque<T, Alloc>& y)
 {
     x.swap(y);
+}
 }

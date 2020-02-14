@@ -1,6 +1,8 @@
 #pragma once
 #include <cstddef>
 //迭代器类型标签
+namespace hxl
+{
 struct input_iterator_tag {};
 struct output_iterator_tag {};
 struct forward_iterator_tag : public input_iterator_tag, public output_iterator_tag {};
@@ -310,3 +312,4 @@ insert_iterator<Container>& operator++() { return *this; }
 
 insert_iterator<Container>& operator++(int) { return *this; }
 };
+}

@@ -2,6 +2,8 @@
 #include "../Iterator/stl_iterator.h"
 #include "../Algorithm/stl_function.h"
 
+namespace hxl
+{
 //将first,last区间元素放入堆中，其中last-1为新加入的元素，其余元素为已构建好的堆
 template <class RandomAccessIterator>
 inline void push_heap(RandomAccessIterator first, RandomAccessIterator last)
@@ -150,4 +152,5 @@ void __make_heap(RandomAccessIterator first, RandomAccessIterator last, T*, Dist
         if(parent == 0) return;
         --parent;
     }
+}
 }

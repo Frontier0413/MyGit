@@ -6,6 +6,8 @@
 //equal函数，判断区间[first1, last1)与first2开始的区间是否相同
 //使用者应该保证first2开始的区间长度不小于[first1, last1)区间长度，否则会引发内存访问错误
 //当第一区间长度小于第二区间时，只比较第一区间长度的元素。
+namespace hxl
+{
 template <class InputIterator1, class InputIterator2>
 inline bool equal(InputIterator1 first1, InputIterator1 last1, InputIterator2 first2)
 {
@@ -310,26 +312,4 @@ inline const T& min(const T& a, const T& b, Compare comp)
 	return comp(b, a) ? b : a;
 }
 
-// //平行比较两个序列，返回两个序列的第一个不匹配点
-// template <class InputIterator1, class InputIterator2>
-// inline pair<InputIterator1, InputIterator2> mismatch(InputIterator1 first1, InputIterator2 first2)
-// {
-// 	while(first1 != last1 && *first1 == *first2)
-// 	{
-// 		++first1;
-// 		++first2;
-// 	}
-// 	return pair<InputIterator1, InputIterator2>(first1, first2); 
-// }
-
-// //平行比较两个序列，返回两个序列的第一个不匹配点
-// template <class InputIterator1, class InputIterator2, class BinaryPredicate>
-// inline pair<InputIterator1, InputIterator2> mismatch(InputIterator1 first1, InputIterator2 first2, BinaryPredicate binary_pred)
-// {
-// 	while(first1 != last1 && binary_pred(*first1, *first2))
-// 	{
-// 		++first1;
-// 		++first2;
-// 	}
-// 	return pair<InputIterator1, InputIterator2>(first1, first2); 
-// }
+}

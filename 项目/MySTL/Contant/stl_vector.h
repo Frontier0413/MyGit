@@ -5,6 +5,8 @@
 #include "../Allocator/stl_uninitialized.h"
 #include "../TypeTraits/IsInteger.h"
 
+namespace hxl
+{
 template <class T, class Ref, class Ptr>
 class __vector_iterator
 {
@@ -158,15 +160,8 @@ protected:
 	pointer allocate_and_fill(size_type n, const T& x)
 	{
 		pointer result = data_allocator::allocate(n);
-		try
-		{
-			uninitialized_fill_n(result, n, x);
-			return result;
-		}
-		catch (...)
-		{
-			data_allocator::deallocate(result, n);
-		}
+		uninitialized_fill_n(result, n, x);
+		return result;
 	}
 
 	//分配n个字节的内存，并将first到last区间的元素拷贝的申请的内存上,返回首地址指针
@@ -296,9 +291,9 @@ public:
 	//将vector与x互换
 	void swap(vector<T, Alloc> &x)
 	{
-		std::swap(start, x.start);
-		std::swap(finish, x.finish);
-		std::swap(end_of_storage, x.end_of_storage);
+		hxl::swap(start, x.start);
+		hxl::swap(finish, x.finish);
+		hxl::swap(end_of_storage, x.end_of_storage);
 	}
 
 	//删除最后一个元素
@@ -856,4 +851,6 @@ template <class T, class Alloc = alloc>
 inline bool operator<(const vector<T, Alloc> &x, const vector<T, Alloc> &y)
 {
 	return lexicographical_compare(x.begin(), x.end(), y.begin(), y.end());
+}
+
 }

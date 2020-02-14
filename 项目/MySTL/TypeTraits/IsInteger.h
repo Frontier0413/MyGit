@@ -1,6 +1,8 @@
 #pragma once
 #include "type_traits.h"
 
+namespace hxl
+{
 template <class type>
 struct Is_Integer
 {
@@ -96,3 +98,4 @@ struct Is_Integer<unsigned long long>
 {
     using Integer = __true_type;
 };
+}

@@ -5,8 +5,9 @@
 #include "Contant/stl_list.h"
 #include "Contant/stl_deque.h"
 
-
-template <class T>
+namespace hxl
+{
+	template <class T>
 void show_vector(vector<T> &vec)
 {
 	//std::cout << "capcity is " << vec.capacity() << std::endl;
@@ -57,4 +58,5 @@ void show_deque(deque<T>& x)
 	while(first != x.end())
 		std::cout << *first++ << " ";
 	std::cout << std::endl;
+}
 }

@@ -4,6 +4,8 @@
 #include <string.h>
 #define __THROW_BAD_ALLOC std::cerr << "out of memory" << std::endl; exit(1)
 
+namespace hxl
+{
 //stl第一级配置器
 template <int inst>
 class __malloc_alloc_template
@@ -371,3 +373,4 @@ public:
         alloc::deallocate(p, sizeof(T));
     }
 };
+}

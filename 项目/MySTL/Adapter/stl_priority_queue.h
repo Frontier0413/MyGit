@@ -1,7 +1,8 @@
 #pragma once
 #include "../Contant/stl_heap.h"
 #include "../Contant/stl_vector.h"
-
+namespace hxl
+{
 template <class T, class Sequence = vector<T>, class Compare = less<typename Sequence::value_type> >
 class priority_queue
 {
@@ -71,3 +72,4 @@ public:
         }
     }
 };
+}

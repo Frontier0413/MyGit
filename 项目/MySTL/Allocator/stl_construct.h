@@ -4,6 +4,8 @@
 #include "../TypeTraits/type_traits.h"
 
 
+namespace hxl
+{
 //构造函数，以value为初值初始化p所指内存
 template <class T1, class T2>
 inline void construct(T1* p, const T2& value)
@@ -59,4 +61,5 @@ template <class T>
 inline void destory(T* pointer)
 {
     pointer->~T();
+}
 }

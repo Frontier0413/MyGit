@@ -1,6 +1,7 @@
 #pragma once
 #include "../Contant/stl_deque.h"
-
+namespace hxl
+{
 template <class T, class Sequence = deque<T> >
 class queue
 {
@@ -69,4 +70,5 @@ template <class T, class Sequence>
 bool operator< (const queue<T, Sequence>& x, const queue<T, Sequence>& y)
 {
     return x.c < y.c;
+}
 }
