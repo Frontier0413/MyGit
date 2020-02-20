@@ -27,6 +27,7 @@ public:
                 {
                     result.push_back(i);
                     result.push_back(j);
+                    return result;
                 }
             }
         }
@@ -52,7 +53,7 @@ public:
                 {
                     result.push_back(i);
                     result.push_back(hmap[val]);
-                    break;
+                    return result;
                 }
             }
             ++i;
