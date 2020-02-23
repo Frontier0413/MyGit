@@ -9,5 +9,10 @@ until [ "$yn" == "Y" ] || [ "$yn" == "y" ] || [ "$yn" == "N" ] || [ "$yn" == "n"
 do
     read -p "error, except input, Please input again:" yn
 done
-f $yn
+if [ test -ef "test" ];then
+f $yn >> test
+else
+touch test
+f $yn >>test
+fi
 exit
