@@ -1,5 +1,14 @@
 {
     "files.associations": {
-        "xstring": "cpp"
+        "xstring": "cpp",
+        "iostream": "cpp",
+        "vector": "cpp",
+        "utility": "cpp",
+        "istream": "cpp",
+        "string": "cpp",
+        "*.tcc": "cpp",
+        "streambuf": "cpp",
+        "xtree": "cpp",
+        "algorithm": "cpp"
     }
 }
