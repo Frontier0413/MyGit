@@ -308,7 +308,6 @@ static void shell_insertion(RandomAccessIter first, RandomAccessIter last, Dista
     RandomAccessIter end = first;
     while (end + x < last)
         end += x;
-    std::cout << "end : " << *end << "; ";
     for (RandomAccessIter i = first + x; i <= end; i += x)
     {
         __shell_insertion(first, i, *i, x);
