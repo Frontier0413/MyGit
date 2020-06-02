@@ -31,6 +31,8 @@
         "memory_resource": "cpp",
         "fstream": "cpp",
         "iosfwd": "cpp",
-        "cmath": "cpp"
+        "cmath": "cpp",
+        "xlocnum": "cpp",
+        "cstdlib": "cpp"
     }
 }

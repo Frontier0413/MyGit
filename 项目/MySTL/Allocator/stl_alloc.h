@@ -36,7 +36,6 @@ private:
     {
         void (* my_malloc_handler)();
         void* result;
-
         for( ; ; )
         {
             my_malloc_handler = __malloc_alloc_oom_handler;
